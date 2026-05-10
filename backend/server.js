@@ -17,7 +17,11 @@ const app = express();
 
 // Allow requests from frontend (file:// or separate dev server)
 app.use(cors({
-  origin: "*",
+  origin: [
+    "http://localhost:5000",
+    "http://localhost:3000",
+    "https://YOUR-SITE-NAME.netlify.app"  
+  ],
   methods: ["GET", "POST"],
   allowedHeaders: ["Content-Type"]
 }));

@@ -13,6 +13,10 @@ package-lock.json
 # ─── Uploaded files (runtime artifacts) ───
 backend/uploads/
 
+# ─── Xenova model cache ───
+.cache/
+backend/.cache/
+
 # ─── OS files ───
 .DS_Store
 Thumbs.db
@@ -31,4 +35,3 @@ logs/
 
 # ─── Build / cache ───
 dist/
-.cache/
