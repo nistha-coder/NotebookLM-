@@ -1,17 +1,19 @@
 import express from "express";
 import path from "path";
 import multer from "multer";
-
+import { fileURLToPath } from "url";
+import path from "path";
 import { loadDocuments } from "../services/loader.service.js";
 
 import { chunkDocuments } from "../services/chunk.service.js";
 
 import { storeDocuments } from "../services/vector.service.js";
-
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const router = express.Router();
 
 const upload = multer({
-  dest: "uploads/",
+  dest: path.join(__dirname, "../uploads/"),
 });
 
 router.post(
