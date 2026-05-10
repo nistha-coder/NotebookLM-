@@ -20,7 +20,7 @@ app.use(cors({
   origin: [
     "http://localhost:5000",
     "http://localhost:3000",
-    "docu-mind-project.netlify.app"  
+    "https://docu-mind-project.netlify.app/"  
   ],
   methods: ["GET", "POST"],
   allowedHeaders: ["Content-Type"]
