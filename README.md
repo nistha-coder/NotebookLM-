@@ -109,7 +109,7 @@ HF_TOKEN=your-huggingface-token
 ### Step 1 — Clone the Repository
 
 ```bash
-git clone https://github.com/Sandiven/NoteBookLLM.git
+git clone https://github.com/nistha-coder/NotebookLM-
 cd NoteBookLLM
 ```
 
