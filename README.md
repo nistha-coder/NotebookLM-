@@ -95,32 +95,69 @@ HF_TOKEN=your-huggingface-token
 
 ---
 
-## Local Setup
+## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js v18 or higher
-- A running Qdrant instance (local or cloud)
 
-### Steps
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/nistha-coder/NotebookLM-
-
-# 2. Install backend dependencies
-cd backend
-npm install
-
-# 3. Start the backend server
-npm run dev
-
-# 4. Open the frontend
-# Visit http://localhost:5000 in your browser
-```
-
-The backend serves the frontend static files automatically — no separate frontend server needed locally.
+- **Node.js** v18 or higher
+- **Qdrant** — either a cloud instance (qdrant.io) or Docker locally
+- **Groq API Key** — get one at [console.groq.com](https://console.groq.com)
+- **Hugging Face Token** (optional, for private models)
 
 ---
+
+### Step 1 — Clone the Repository
+
+```bash
+git clone https://github.com/Sandiven/NoteBookLLM.git
+cd NoteBookLLM
+```
+
+### Step 2 — Start Qdrant (if running locally)
+
+```bash
+docker run -p 6333:6333 qdrant/qdrant
+```
+
+> Skip this step if you're using Qdrant Cloud — just set `QDRANT_URL` to your cloud endpoint.
+
+### Step 3 — Install Backend Dependencies
+
+```bash
+cd backend
+npm install
+```
+
+
+### Step 4 — Start the Server
+
+```bash
+npm run dev
+```
+
+The server starts at `http://localhost:5000` and also serves the frontend automatically.
+
+### Step 6 — Open in Browser
+
+Navigate to:
+
+```
+http://localhost:5000
+```
+
+---
+
+## 🏃 Run Commands
+
+| Command | Description |
+|---|---|
+| `npm install` | Install all backend dependencies |
+| `npm run dev` | Start the server in development mode (with hot reload if nodemon is configured) |
+| `npm start` | Start the server in production mode |
+| `docker run -p 6333:6333 qdrant/qdrant` | Start Qdrant locally via Docker |
+
+---
+
 
 ## Deployment Guide
 
