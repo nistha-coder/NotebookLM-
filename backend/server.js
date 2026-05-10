@@ -10,9 +10,10 @@ import uploadRoute from "./routes/upload.route.js";
 import chatRoute from "./routes/chat.route.js";
 
 dotenv.config();
-fs.mkdirSync("uploads", { recursive: true });
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+fs.mkdirSync(path.join(__dirname, "uploads"), { recursive: true });
 
 const app = express();
 
