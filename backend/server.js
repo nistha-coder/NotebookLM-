@@ -25,6 +25,7 @@ const app = express();
 //   methods: ["GET", "POST"],
 //   allowedHeaders: ["Content-Type"]
 // }))
+process.env.TRANSFORMERS_CACHE = "/tmp/transformers_cache";  
 app.use(cors());
 
 app.use(express.json());
