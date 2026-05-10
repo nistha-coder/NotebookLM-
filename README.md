@@ -105,21 +105,16 @@ HF_TOKEN=your-huggingface-token
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/your-repo.git
-cd your-repo/final_project
+git clone https://github.com/nistha-coder/NotebookLM-
 
 # 2. Install backend dependencies
 cd backend
 npm install
 
-# 3. Create your .env file
-cp .env.example .env
-# Fill in all values in .env
-
-# 4. Start the backend server
+# 3. Start the backend server
 npm run dev
 
-# 5. Open the frontend
+# 4. Open the frontend
 # Visit http://localhost:5000 in your browser
 ```
 
