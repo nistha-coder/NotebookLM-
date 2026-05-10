@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DocuMind — AI Document Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #111118;
+      --surface2: #1a1a26;
+      --border: rgba(255,255,255,0.07);
+      --accent: #7c6fff;
+      --accent2: #ff6fd8;
+      --accent3: #6fffd4;
+      --text: #f0f0f8;
+      --muted: #7a7a9a;
+      --glow: rgba(124, 111, 255, 0.25);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── NOISE TEXTURE ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    /* ─── BACKGROUND BLOBS ─── */
+    .bg-blobs {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.18;
+      animation: drift 18s ease-in-out infinite alternate;
+    }
+    .blob-1 { width: 600px; height: 600px; background: var(--accent); top: -100px; left: -150px; animation-delay: 0s; }
+    .blob-2 { width: 400px; height: 400px; background: var(--accent2); bottom: -50px; right: -100px; animation-delay: -6s; }
+    .blob-3 { width: 300px; height: 300px; background: var(--accent3); top: 40%; left: 50%; animation-delay: -12s; }
+
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(40px, 30px) scale(1.1); }
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 3rem;
+      background: rgba(10,10,15,0.7);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.4rem;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .logo span { font-weight: 400; }
+    nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: var(--text); }
+
+    /* ─── HERO ─── */
+    .hero {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 8rem 2rem 4rem;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(124,111,255,0.1);
+      border: 1px solid rgba(124,111,255,0.3);
+      border-radius: 100px;
+      padding: 0.4rem 1rem;
+      font-size: 0.8rem;
+      color: var(--accent);
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+      animation: fadeUp 0.6s ease both;
+    }
+    .badge-dot {
+      width: 6px; height: 6px;
+      background: var(--accent3);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity:1; transform:scale(1); }
+      50% { opacity:0.5; transform:scale(1.4); }
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.8rem, 7vw, 5.5rem);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+    h1 .line-accent {
+      background: linear-gradient(135deg, var(--accent), var(--accent2) 50%, var(--accent3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      max-width: 560px;
+      font-size: 1.1rem;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 3rem;
+      font-weight: 300;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+
+    .cta-group {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.9rem 2rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+      box-shadow: 0 0 30px var(--glow);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 50px rgba(124,111,255,0.45);
+      background: #9180ff;
+    }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary svg { width:18px; height:18px; }
+
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.9rem 2rem;
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-ghost:hover {
+      border-color: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.04);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── FLOATING DEMO CARD ─── */
+    .hero-visual {
+      margin-top: 4rem;
+      position: relative;
+      animation: fadeUp 0.8s 0.4s ease both;
+    }
+    .demo-card {
+      width: min(620px, 90vw);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03);
+      position: relative;
+    }
+    .demo-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
+    }
+    .demo-header {
+      padding: 0.8rem 1rem;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .dot { width:10px; height:10px; border-radius:50%; }
+    .dot-r { background:#ff5f57; }
+    .dot-y { background:#febc2e; }
+    .dot-g { background:#28c840; }
+    .demo-title { margin-left:0.5rem; font-size:0.8rem; color:var(--muted); font-weight: 500; }
+    .demo-body { padding: 1.4rem; display:flex; flex-direction:column; gap:0.8rem; }
+    .chat-msg {
+      display: flex;
+      gap: 0.7rem;
+      align-items: flex-start;
+    }
+    .chat-msg.user { flex-direction: row-reverse; }
+    .avatar {
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      display: grid; place-items: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .avatar-ai { background: linear-gradient(135deg, var(--accent), var(--accent2)); color:#fff; }
+    .avatar-user { background: var(--surface2); border:1px solid var(--border); color:var(--muted); }
+    .bubble {
+      max-width: 80%;
+      padding: 0.65rem 1rem;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      line-height: 1.55;
+    }
+    .bubble-ai {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-bottom-left-radius: 4px;
+    }
+    .bubble-user {
+      background: var(--accent);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+    .typing-dots span {
+      display: inline-block;
+      width: 6px; height: 6px;
+      background: var(--muted);
+      border-radius: 50%;
+      margin: 0 2px;
+      animation: blink 1.2s infinite;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink {
+      0%,80%,100% { opacity:0.2; transform:scale(1); }
+      40% { opacity:1; transform:scale(1.2); }
+    }
+
+    /* ─── FEATURES ─── */
+    .section {
+      position: relative;
+      z-index: 1;
+      padding: 6rem 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .section-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.8rem;
+    }
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .section-sub {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.7;
+      max-width: 520px;
+    }
+
+    .features-grid {
+      margin-top: 3.5rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.2rem;
+    }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.8rem;
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.3s;
+      background: radial-gradient(circle at 50% 0%, rgba(124,111,255,0.08), transparent 70%);
+    }
+    .feature-card:hover { border-color: rgba(124,111,255,0.35); transform: translateY(-3px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+    .feature-card:hover::before { opacity: 1; }
+    .feature-icon {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: grid; place-items: center;
+      margin-bottom: 1.2rem;
+      font-size: 1.3rem;
+    }
+    .feature-card h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .feature-card p { font-size: 0.88rem; color: var(--muted); line-height: 1.65; }
+
+    /* ─── SUPPORTED FILES ─── */
+    .files-strip {
+      position: relative;
+      z-index: 1;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 2.5rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .files-strip span {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .file-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    /* ─── CTA BANNER ─── */
+    .cta-banner {
+      position: relative;
+      z-index: 1;
+      margin: 0 auto;
+      max-width: 800px;
+      padding: 3rem 2rem 6rem;
+      text-align: center;
+    }
+    .cta-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 3.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-box::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, rgba(124,111,255,0.4), rgba(255,111,216,0.4));
+      z-index: -1;
+    }
+    .cta-box h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .cta-box p { color: var(--muted); margin-bottom: 2rem; line-height: 1.7; }
+
+    /* ─── FOOTER ─── */
+    footer {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 1.5rem 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    footer p { font-size: 0.82rem; color: var(--muted); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 640px) {
+      nav { padding: 1rem 1.2rem; }
+      .section { padding: 4rem 1.2rem; }
+      .cta-box { padding: 2rem 1.5rem; }
+      footer { padding: 1.5rem 1.2rem; justify-content: center; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-blobs">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- NAV -->
+  <nav>
+    <div class="logo">Docu<span>Mind</span></div>
+    <a href="chat.html">Open Chat →</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">
+      <div class="badge-dot"></div>
+      Powered by RAG + LLaMA 3
+    </div>
+    <h1>
+      Chat with Your<br>
+      <span class="line-accent">Documents</span> Instantly
+    </h1>
+    <p class="hero-sub">
+      Upload any file — PDF, DOCX, CSV, PPTX and more — and ask questions in plain English. Get precise, context-aware answers powered by vector search and AI.
+    </p>
+    <div class="cta-group">
+      <a href="chat.html" class="btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Ask Your Query
+      </a>
+      <a href="#features" class="btn-ghost">
+        Learn More
+      </a>
+    </div>
+
+    <!-- DEMO CHAT VISUAL -->
+    <div class="hero-visual">
+      <div class="demo-card">
+        <div class="demo-header">
+          <div class="dot dot-r"></div>
+          <div class="dot dot-y"></div>
+          <div class="dot dot-g"></div>
+          <span class="demo-title">DocuMind Chat</span>
+        </div>
+        <div class="demo-body">
+          <div class="chat-msg user">
+            <div class="avatar avatar-user">U</div>
+            <div class="bubble bubble-user">What are the key findings in the uploaded report?</div>
+          </div>
+          <div class="chat-msg">
+            <div class="avatar avatar-ai">AI</div>
+            <div class="bubble bubble-ai">Based on your document, here are the key findings:<br><br>• Revenue grew by <strong>32%</strong> YoY in Q3<br>• User retention improved to <strong>87%</strong><br>• Three new markets were identified for expansion</div>
+          </div>
+          <div class="chat-msg user">
+            <div class="avatar avatar-user">U</div>
+            <div class="bubble bubble-user">Which markets were identified?</div>
+          </div>
+          <div class="chat-msg">
+            <div class="avatar avatar-ai">AI</div>
+            <div class="bubble bubble-ai">
+              <div class="typing-dots"><span></span><span></span><span></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUPPORTED FILES STRIP -->
+  <div class="files-strip">
+    <span>Supports</span>
+    <div class="file-badge" style="background:rgba(255,80,80,0.1);color:#ff6b6b;">📄 PDF</div>
+    <div class="file-badge" style="background:rgba(80,180,255,0.1);color:#60c0ff;">📝 DOCX</div>
+    <div class="file-badge" style="background:rgba(80,220,120,0.1);color:#50dc78;">📊 CSV</div>
+    <div class="file-badge" style="background:rgba(255,180,80,0.1);color:#ffb450;">📑 PPTX</div>
+    <div class="file-badge" style="background:rgba(180,120,255,0.1);color:#b478ff;">📋 JSON</div>
+    <div class="file-badge" style="background:rgba(150,150,170,0.15);color:#aaaacc;">📃 TXT</div>
+  </div>
+
+  <!-- FEATURES -->
+  <section class="section" id="features">
+    <div class="section-label">How it works</div>
+    <h2 class="section-title">Intelligent Document Intelligence</h2>
+    <p class="section-sub">From upload to insight in seconds. Our RAG pipeline ensures every answer is grounded in your actual data.</p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(124,111,255,0.12);">📤</div>
+        <h3>Upload Any File</h3>
+        <p>Drag & drop or browse to upload PDFs, Word docs, spreadsheets, presentations, and more. We handle the parsing.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(255,111,216,0.12);">🔍</div>
+        <h3>Vector Search</h3>
+        <p>Documents are chunked, embedded, and stored in Qdrant vector DB — enabling semantic similarity search across all content.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(111,255,212,0.12);">🧠</div>
+        <h3>LLaMA 3 Answers</h3>
+        <p>Queries are answered using LLaMA 3-70B via Groq, with retrieved context fed directly — no hallucinations, only facts.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(255,200,80,0.12);">⚡</div>
+        <h3>Blazing Fast</h3>
+        <p>Groq's inference engine delivers LLaMA responses at lightning speed. Ask a question, get answers in under a second.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(80,200,255,0.12);">🔒</div>
+        <h3>Context-Grounded</h3>
+        <p>Answers are strictly derived from your uploaded documents. If the answer isn't in your file, the AI will tell you so.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(255,130,80,0.12);">💬</div>
+        <h3>Natural Language</h3>
+        <p>No need for special syntax. Ask questions the same way you'd ask a colleague — the AI understands context and nuance.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <div class="cta-banner">
+    <div class="cta-box">
+      <h2>Ready to unlock your documents?</h2>
+      <p>Upload a file and start asking questions. It takes less than 30 seconds to get your first answer.</p>
+      <a href="chat.html" class="btn-primary" style="font-size:1.05rem;padding:1rem 2.4rem;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Ask Your Query Now
+      </a>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="logo" style="font-size:1.1rem;">Docu<span>Mind</span></div>
+    <p>RAG-powered document assistant · Built with LangChain, Qdrant & Groq</p>
+  </footer>
+</body>
+</html>

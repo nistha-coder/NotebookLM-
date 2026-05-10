@@ -1,0 +1,34 @@
+# ─── Node / npm ───
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# ─── Environment variables ───
+.env
+.env.local
+.env.*.local
+
+# ─── Uploaded files (runtime artifacts) ───
+backend/uploads/
+
+# ─── OS files ───
+.DS_Store
+Thumbs.db
+
+# ─── Editor directories ───
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# ─── Logs ───
+logs/
+*.log
+
+# ─── Build / cache ───
+dist/
+.cache/
